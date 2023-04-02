@@ -1,30 +1,41 @@
-﻿module Program
+﻿module NederlandsEngels.Program
 
+open System
 open System.IO
-open System.Xml
-open System.Xml.Linq
+open System.Text.RegularExpressions
+open AngleSharp.Html.Dom
+open FSharp.Core.Fluent
+open AngleSharp
+open AngleSharp.Io
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
-type MyResolver () =
-    inherit XmlResolver ()
-
-    override this.GetEntity (absoluteUri, role, ofObjectToReturn) =
-        null
-
-let loadXml (path : string) =
-    use fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
-    let settings = XmlReaderSettings()
-    settings.DtdProcessing <- DtdProcessing.Parse
-    settings.XmlResolver <- MyResolver()
-    // let xmlSchema = XmlSchema()
-    // settings.Schemas.Add(xmlSchema) |> ignore
-    use xmlReader = XmlReader.Create(fs, settings)
-    // xmlReader.ResolveEntity ()
-    XDocument.Load(xmlReader)
+let loadHtml (path : string) =
+    let xml = File.ReadAllText(path)
+    let ctx = BrowsingContext.New(Configuration.Default.WithDefaultLoader())
+    let html = ctx.OpenAsync(Action<VirtualResponse>(fun req -> req.Content(xml) |> ignore)).Result
+    html.Body
+    
+let normalizeSpaces (s : string) =
+    Regex.Replace(s, @"\s+", " ").Trim()
+    
+let parseEn (html : IHtmlElement) =
+    html
+        .QuerySelectorAll("span, p")
+        .filter(fun e -> e.Children.Length = 0)
+        .map(fun e -> normalizeSpaces e.TextContent)
+        .filter(not << String.IsNullOrWhiteSpace)
+        .toList()
+        
+let parseNl (html : IHtmlElement) =
+    html.QuerySelectorAll("span, p, h2, h3")
+        .filter(fun e -> e.Children.forall(function | :? IHtmlBreakRowElement -> true | _ -> false))
+        .map(fun e -> normalizeSpaces e.TextContent)
+        .filter(not << String.IsNullOrWhiteSpace)
+        .toList()
 
 [<EntryPoint>]
 let main _ =
-    let en = loadXml @"C:\_temp\epub-dutch\en\1.xhtml"
-    let nl = loadXml @"C:\_temp\epub-dutch\nl\1.xhtml"
+    let en = loadHtml @"../../../../Data/en/1.xhtml" |> parseEn
+    let nl = loadHtml @"../../../../Data/nl/1.xhtml" |> parseNl
     0

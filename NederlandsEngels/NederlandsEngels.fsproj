@@ -6,7 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Program.fs"/>
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="1.0.1" />
+    <PackageReference Include="FSharp.Core.Fluent" Version="3.0.1" />
   </ItemGroup>
 
 </Project>
