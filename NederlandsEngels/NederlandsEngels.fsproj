@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <Compile Include="Prelude.fs" />
+    <Compile Include="Machines.fs" />
+    <Compile Include="SentenceParsing.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
