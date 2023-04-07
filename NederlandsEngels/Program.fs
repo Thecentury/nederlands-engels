@@ -38,4 +38,10 @@ let parseNl (html : IHtmlElement) =
 let main _ =
     let en = loadHtml @"../../../../Data/en/1.xhtml" |> parseEn
     let nl = loadHtml @"../../../../Data/nl/1.xhtml" |> parseNl
+    
+    let enSentences = en |> Seq.collect SentenceParsing.splitIntoSentences |> String.concat "\n\n"
+    let nlSentences = nl |> Seq.collect SentenceParsing.splitIntoSentences |> String.concat "\n\n"
+    
+    printfn $"EN:\n\n%s{enSentences}\n\nNL:\n\n%s{nlSentences}"
+    
     0

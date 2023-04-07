@@ -24,6 +24,7 @@ type SentenceParsingTests () =
                 "'O, ' x 'y... z. '"
                 "H."
             |]
+            SentenceParsingTests.example "'A?' b." [| "'A?' b." |]
             SentenceParsingTests.example "H. I." [|
                 "H."
                 "I."
@@ -32,12 +33,13 @@ type SentenceParsingTests () =
                 "H."
                 "I."
             |]
+            SentenceParsingTests.example "Mr. Crab" [| "Mr. Crab" |]
         |]
 
     [<Theory>]
     [<MemberData("examples")>]
     member _.``Finds sentences`` (str : string, expected : array<string>) =
-        let actual = SentenceParsing.findSentences str
+        let actual = SentenceParsing.splitIntoSentences str
         test <@ actual.Length = expected.Length @>
         if expected.Length = 1 then
             let actual = actual[0]

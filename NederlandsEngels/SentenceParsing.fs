@@ -62,7 +62,7 @@ let private isAbbreviation (sentence : List<char>) =
         | -1, _ -> true
         | _, [] -> false // The sentence is too short to be an abbreviation
         | _, c :: rest ->
-            if c = abbr[index] then
+            if Char.ToLowerInvariant c = abbr[index] then
                 isAbbreviation abbr (index - 1) rest
             else
                 false
@@ -92,17 +92,19 @@ let trimStartingSpaces sentenceToYield previous = M.machine ^ fun c ->
     | Some prev, Char c -> Transition (sentenceToYield, normal [c; prev])
     | None, Char c -> Transition (sentenceToYield, sentenceLetter [] c)
     
-let continueConsumingAfterDots soFar = M.machine ^ fun c ->
+let continueConsumingAfterPossibleSentenceEnd soFar = M.machine ^ fun c ->
     match c with
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
     | Char c when Char.IsWhiteSpace c ->
-        Transition (noSentences, continueConsumingAfterDots (c :: soFar))
+        Transition (noSentences, continueConsumingAfterPossibleSentenceEnd (c :: soFar))
     | Char c when Char.IsDigit c || Char.IsLower c ->
         Transition (noSentences, normal (c :: soFar))
     | Char _ ->
         Halt
         // Transition (completeSentence soFar, trimStartingSpaces (Some c))
+
+let private appendSentence (sentence : List<'a>) (sentences : List<List<'a>>) : List<'a> = (sentences @ [sentence]) |> List.collect id
 
 let consumeDots soFar = M.machine ^ fun c ->
     match c with
@@ -111,9 +113,7 @@ let consumeDots soFar = M.machine ^ fun c ->
     | Char ('.' as c) ->
         Transition (noSentences, consumeDots (c :: soFar))
     | Char c ->
-        // todo here soFar is lost in the second case.
-        let combine (x : List<'a>) (xs : List<List<'a>>) : List<'a> = x :: xs |> List.rev |> List.collect id
-        let next = M.tryFirst (List.isEmpty >> not) [] combine (continueConsumingAfterDots (c :: soFar)) (trimStartingSpaces (Some soFar) (Some c))
+        let next = M.tryFirst (List.isEmpty >> not) [] appendSentence (continueConsumingAfterPossibleSentenceEnd (c :: soFar)) (trimStartingSpaces (Some soFar) (Some c))
         Transition (noSentences, next)
     
 let consumeTerminators soFar = M.machine ^ fun (c : Input) ->
@@ -154,6 +154,7 @@ let insideDoubleQuotes soFar quote = M.machine ^ fun c ->
         let sentence = c :: soFar
         match c, soFar with
         | Equals quote, StringEndsWithTerminator ->
+            // todo support "A?" said B. - after the "?"" the sentence does not end.
             Transition (completeSentence sentence, trimStartingSpaces None None)
         | Equals quote, _ ->
             Transition (noSentences, normal sentence)
@@ -171,13 +172,15 @@ let insideSingleQuotes soFar quote = M.machine ^ fun c ->
         // todo detect usage as in "Boy's".
         match c, soFar with
         | Equals quote, StringEndsWithTerminator ->
-            Transition (completeSentence sentence, trimStartingSpaces None None)
+            // 'A?' said B. - after the "?'" the sentence does not end.
+            let next = M.tryFirst (List.isEmpty >> not) [] appendSentence (continueConsumingAfterPossibleSentenceEnd sentence) (trimStartingSpaces (Some sentence) None)
+            Transition (noSentences, next)
         | Equals quote, _ ->
             Transition (noSentences, normal sentence)
         | _ ->
             Transition (noSentences, insideSingleQuotes sentence quote)
         
-let findSentences (s : string) =
+let splitIntoSentences (s : string) =
     let mutable machine = trimStartingSpaces None None
     let sentences = ResizeArray()
     
