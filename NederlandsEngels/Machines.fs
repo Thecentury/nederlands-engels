@@ -67,6 +67,20 @@ module Machine =
         match step s m1 with
         | Halt -> step s m2
         | Transition (o, m1') -> Transition (o, m1')
+        
+    let tryFirst success zero combine m1 m2 =
+        let rec go os1 os2 m1 m2 s =
+            match step s m1, step s m2 with
+            | Halt, Halt -> Halt
+            | Halt, Transition(o2, m2) -> Transition (combine o2 os2, m2)
+            | Transition(o1, m1), Halt -> Transition (combine o1 os1, m1)
+            | Transition(o1, m1), Transition(o2, m2) ->
+                if success o1 then
+                    Transition (combine o1 os1, m1)
+                else
+                    Transition (zero, machine (go (o1 :: os1) (o2 :: os2) m1 m2))
+            
+        machine (go [] [] m1 m2)
 
     let rec par combine m1 m2 = Machine ^ fun i -> // Essentially, output type should form a semiring.
         match step i m1, step i m2 with

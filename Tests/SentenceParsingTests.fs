@@ -20,6 +20,10 @@ type SentenceParsingTests () =
                 "'O, dat zit wel goed, ' riep hij vrolijk, 'ik denk dat we er vanuit kunnen gaan dat de zaak beklonken is... tenminste, als de kamers u bevallen. '"
                 "Hallo."
             |]
+            SentenceParsingTests.example "'O, ' x 'y... z. ' H." [|
+                "'O, ' x 'y... z. '"
+                "H."
+            |]
             SentenceParsingTests.example "H. I." [|
                 "H."
                 "I."
@@ -34,4 +38,10 @@ type SentenceParsingTests () =
     [<MemberData("examples")>]
     member _.``Finds sentences`` (str : string, expected : array<string>) =
         let actual = SentenceParsing.findSentences str
-        test <@ actual = expected @>
+        test <@ actual.Length = expected.Length @>
+        if expected.Length = 1 then
+            let actual = actual[0]
+            let expected = expected[0]
+            test <@ actual = expected @>
+        else
+            test <@ actual = expected @>
