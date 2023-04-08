@@ -18,16 +18,19 @@ let loadHtml (path : string) =
     html.Body
     
 let normalizeSpaces (s : string) =
-    Regex.Replace(s, @"\s+", " ").Trim()
+    let normalized = Regex.Replace(s, @"\s+", " ").Trim()
+    normalized
+    
+let private isNotLink (e : IElement) =
+    e.ClassName <> "calibre3"
     
 let parseEn (html : IHtmlElement) =
     html
         .QuerySelectorAll("span")
-        // Exclude links.
-        .filter(fun e -> e.ClassName <> "calibre3")
-        .map(fun e -> e :> INode)
+        .filter(isNotLink)
+        .ofType<INode>()
         .collect(fun e -> e.ChildNodes)
-        .choose(function | :? IText as t -> Some t | _ -> None)
+        .ofType<IText>()
         .map(fun e -> normalizeSpaces e.TextContent)
         .filter(not << String.IsNullOrWhiteSpace)
         .toList()
@@ -41,14 +44,22 @@ let parseNl (html : IHtmlElement) =
 
 [<EntryPoint>]
 let main _ =
-    let en = loadHtml @"../../../../Data/en/1.xhtml" |> parseEn
-    let nl = loadHtml @"../../../../Data/nl/1.xhtml" |> parseNl
+    let root =
+        if Directory.Exists "../Data" then
+            // When running using 'dotnet run'
+            "../Data"
+        else
+            // When running from the 'bin' folder
+            @"../../../../Data"
+
+    // let en = loadHtml (Path.Combine (root, "en/1.xhtml")) |> parseEn
+    let nl = loadHtml (Path.Combine (root, "nl/1.xhtml")) |> parseNl
     
-    let enSentences = en |> Seq.collect SentenceParsing.splitIntoSentences |> String.concat "\n\n"
-    // let nlSentences = nl |> Seq.collect SentenceParsing.splitIntoSentences |> String.concat "\n\n"
+    // let enSentences = en |> String.concat " " |> SentenceParsing.splitIntoSentences |> String.concat "\n\n"
+    let nlSentences = nl |> String.concat " " |> SentenceParsing.splitIntoSentences |> String.concat "\n\n"
     
-    printfn $"EN:\n\n%s{enSentences}"
-    printfn "\n\n"
-    // printfn $"NL:\n\n%s{nlSentences}"
+    // printfn $"EN:\n\n%s{enSentences}"
+    // printfn "\n\n"
+    printfn $"NL:\n\n%s{nlSentences}"
     
     0

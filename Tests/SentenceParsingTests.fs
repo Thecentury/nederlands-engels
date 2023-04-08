@@ -53,6 +53,9 @@ type SentenceParsingTests () =
             SentenceParsingTests.example
                 "\"What are you up to now?\""
                 [| "\"What are you up to now?\"" |]
+            SentenceParsingTests.example
+                "\"Looking for lodgings.\" I answered."
+                [| "\"Looking for lodgings.\" I answered." |]
         |]
 
     [<Theory>]
