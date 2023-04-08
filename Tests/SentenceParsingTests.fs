@@ -56,6 +56,9 @@ type SentenceParsingTests () =
             SentenceParsingTests.example
                 "\"Looking for lodgings.\" I answered."
                 [| "\"Looking for lodgings.\" I answered." |]
+            SentenceParsingTests.example
+                "A... b. C."
+                [| "A... b."; "C." |]
         |]
 
     [<Theory>]

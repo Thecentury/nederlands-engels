@@ -11,7 +11,7 @@ module M = Machine
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
-module Char =
+module private Char =
     
     let isQuote = function
         | '"' | ''' -> true
@@ -192,10 +192,11 @@ let private insideSingleQuotes soFar quote = M.machine ^ fun c ->
         match c, soFar with
         | Equals quote, StringEndsWithTerminator ->
             // 'A?' said B. - after the "?'" the sentence does not end.
-            let next = tryFirst (continueConsumingAfterPossibleSentenceEnd sentence) (trimStartingSpaces (Some sentence) None)
+            let next = tryFirst
+                           (continueConsumingAfterPossibleSentenceEnd sentence)
+                           (trimStartingSpaces (Some sentence) None)
             Transition (noSentences, next)
         | Equals quote, _ ->
-            // todo detect usage as in "Boy's".
             Transition (noSentences, normal sentence)
         | _ ->
             Transition (noSentences, insideSingleQuotes sentence quote)

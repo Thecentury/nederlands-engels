@@ -9,12 +9,15 @@
     <Compile Include="Prelude.fs" />
     <Compile Include="Machines.fs" />
     <Compile Include="SentenceParsing.fs" />
+    <Compile Include="EpubParsing.fs" />
+    <Compile Include="UI\Model.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.0.1" />
-    <PackageReference Include="FSharp.Core.Fluent" Version="3.0.1" />
+    <PackageReference Include="FSharp.Core.Fluent" Version="3.0.2" />
+    <PackageReference Include="Terminal.Gui.Elmish" Version="2.1.172" />
   </ItemGroup>
 
 </Project>
