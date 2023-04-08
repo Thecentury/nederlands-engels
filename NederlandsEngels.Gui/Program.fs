@@ -1,8 +1,11 @@
 ﻿namespace NederlandsEngels.Gui
 
+open System
 open System.IO
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Input
+open Avalonia.Styling
 open Avalonia.Themes.Fluent
 open Avalonia.FuncUI.Hosts
 open Avalonia.Controls.ApplicationLifetimes
@@ -11,7 +14,7 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
 
 open NederlandsEngels
-open NederlandsEngels.EpubParsing
+open NederlandsEngels.Gui.Model
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
@@ -30,14 +33,31 @@ type MainWindow() as this =
         // When running from the 'bin' folder
         "../../../../Data"
 
-    let en = loadHtml (Path.Combine (root, "en/1.xhtml")) |> parseEn
-    let nl = loadHtml (Path.Combine (root, "nl/1.xhtml")) |> parseNl
+    // let en = loadHtml (Path.Combine (root, "en/1.xhtml")) |> parseEn
+    // let nl = loadHtml (Path.Combine (root, "nl/1.xhtml")) |> parseNl
+    //
+    // let enSentences = en |> String.concat " " |> SentenceParsing.splitIntoSentences |> Array.toList
+    // let nlSentences = nl |> String.concat " " |> SentenceParsing.splitIntoSentences |> Array.toList
+    let enSentences = File.ReadAllLines (Path.Combine(root, "en/1.txt")) |> Array.toList
+    let nlSentences = File.ReadAllLines (Path.Combine(root, "nl/1.txt")) |> Array.toList
 
-    let enSentences = en |> String.concat " " |> SentenceParsing.splitIntoSentences |> Array.toList
-    let nlSentences = nl |> String.concat " " |> SentenceParsing.splitIntoSentences |> Array.toList
+    let emptyDisposable =
+      { new IDisposable with
+          member _.Dispose() = () }
 
-    Elmish.Program.mkProgram (fun _ -> Model.init enSentences nlSentences) Model.update View.view
+    Elmish.Program.mkProgram (fun _ -> init enSentences nlSentences) update View.view
     |> Program.withHost this
+    |> Program.withSubscription (fun _ -> [(["onKeyDown"], fun dispatch ->
+        this.KeyDown.Add(fun e ->
+          match e.Key, e.KeyModifiers with
+          | Key.Left, KeyModifiers.None -> dispatch Msg.MoveFocusLeft
+          | Key.Right, KeyModifiers.None -> dispatch Msg.MoveFocusRight
+          | Key.Up, KeyModifiers.None -> dispatch Msg.MoveFocusUp
+          | Key.Down, KeyModifiers.None -> dispatch Msg.MoveFocusDown
+          | Key.M, KeyModifiers.None -> dispatch Msg.MergeUp
+          | _ -> ())
+        emptyDisposable
+      )])
     // |> Program.withConsoleTrace
     |> Program.run
   // base.Height <- 400.0
@@ -50,7 +70,8 @@ type App() =
   inherit Application()
 
   override this.Initialize () =
-    this.Styles.Add (FluentTheme (baseUri = null, Mode = FluentThemeMode.Light))
+    this.Styles.Add (FluentTheme())
+    this.RequestedThemeVariant <- ThemeVariant.Light
 
   override this.OnFrameworkInitializationCompleted () =
     match this.ApplicationLifetime with
@@ -69,7 +90,7 @@ module Program =
 
   [<EntryPoint>]
   let main (args : string[]) =
-    let opts = AvaloniaNativePlatformOptions (UseGpu = false)
-    AvaloniaLocator.CurrentMutable.BindToSelf opts |> ignore
-
+    // let existingOptions = AvaloniaLocator.Current.GetService<AvaloniaNativePlatformOptions>()
+    // let opts = AvaloniaNativePlatformOptions (UseGpu = false)
+    // AvaloniaLocator.CurrentMutable.BindToSelf opts |> ignore
     AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().StartWithClassicDesktopLifetime args

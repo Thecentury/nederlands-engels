@@ -10,7 +10,7 @@ open NederlandsEngels
 // 'O, het is dus geheim?' riep ik uit.
 
 type SentenceParsingTests () =
-    
+
     static member example str expected =
         [| box str; box expected |]
 
@@ -59,6 +59,9 @@ type SentenceParsingTests () =
             SentenceParsingTests.example
                 "A... b. C."
                 [| "A... b."; "C." |]
+            SentenceParsingTests.example
+                "'Niet te geloven!' riep ik uit, 'als . '"
+                [| "'Niet te geloven!' riep ik uit, 'als . '" |]
         |]
 
     [<Theory>]
