@@ -1,5 +1,6 @@
 ﻿module NederlandsEngels.Program
 
+open System
 open System.IO
 open FSharp.Core.Fluent
 open EpubParsing
@@ -14,7 +15,7 @@ let main _ =
             "../Data"
         else
             // When running from the 'bin' folder
-            @"../../../../Data"
+            "../../../../Data"
 
     let en = loadHtml (Path.Combine (root, "en/1.xhtml")) |> parseEn
     let nl = loadHtml (Path.Combine (root, "nl/1.xhtml")) |> parseNl
@@ -22,9 +23,14 @@ let main _ =
     let enSentences = en |> String.concat " " |> SentenceParsing.splitIntoSentences
     let nlSentences = nl |> String.concat " " |> SentenceParsing.splitIntoSentences
 
+    // File.WriteAllLines ((Path.Combine (root, "en/1.txt")), enSentences)
+    // File.WriteAllLines ((Path.Combine (root, "nl/1.txt")), nlSentences)
+    //
+    // Environment.Exit(0)
+
     let zipped = enSentences.toSeq().zip(nlSentences)
 
-    UI.Model.run (enSentences.toList()) (nlSentences.toList())
+    TUI.Model.run (enSentences.toList()) (nlSentences.toList())
 
     // for en, nl in zipped do
     //     printfn $"%s{en}"

@@ -1,4 +1,4 @@
-module NederlandsEngels.UI.Model
+module NederlandsEngels.TUI.Model
 
 open FSharp.Core.Fluent
 open Terminal.Gui

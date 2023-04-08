@@ -4,6 +4,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NederlandsEngels", "Nederla
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{2BBA7265-B348-4E69-872E-DAAF037EAE1F}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NederlandsEngels.Gui", "NederlandsEngels.Gui\NederlandsEngels.Gui.fsproj", "{20FEBFEF-12AA-44BB-BD60-BCBA0D9A7695}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{2BBA7265-B348-4E69-872E-DAAF037EAE1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2BBA7265-B348-4E69-872E-DAAF037EAE1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2BBA7265-B348-4E69-872E-DAAF037EAE1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20FEBFEF-12AA-44BB-BD60-BCBA0D9A7695}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20FEBFEF-12AA-44BB-BD60-BCBA0D9A7695}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20FEBFEF-12AA-44BB-BD60-BCBA0D9A7695}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20FEBFEF-12AA-44BB-BD60-BCBA0D9A7695}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

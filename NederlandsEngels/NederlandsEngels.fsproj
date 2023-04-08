@@ -10,7 +10,7 @@
     <Compile Include="Machines.fs" />
     <Compile Include="SentenceParsing.fs" />
     <Compile Include="EpubParsing.fs" />
-    <Compile Include="UI\Model.fs" />
+    <Compile Include="TUI\Model.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
