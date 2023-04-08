@@ -73,50 +73,60 @@ let private restoreSentence = List.rev >> List.toArray >> String
 let private completeSentence = restoreSentence >> List.singleton
 let private noSentences = List.empty
 
-type Input =
+type private Input =
     | Char of char
     | EndOfInput
 
 // todo triple dots
 
-let trimStartingSpaces sentenceToYield previous = M.machine ^ fun c ->
+let private trimStartingSpaces sentenceToYield previous = M.machine ^ fun c ->
     let sentenceToYield = sentenceToYield |> Option.map restoreSentence |> Option.toList
     match previous, c with
     | None, EndOfInput -> Transition (sentenceToYield, M.halt ())
     | Some ' ', Char ' '
     | None, Char ' ' -> Transition (sentenceToYield, trimStartingSpaces None None)
-    | Some ' ', Char c -> Transition (sentenceToYield, normal [c])
+    | Some ' ', Char c -> Transition (sentenceToYield, sentenceLetter [] c)
     | Some prev, EndOfInput ->
         let sentences = String [| prev |] :: sentenceToYield
         Transition (sentences, M.halt())
     | Some prev, Char c -> Transition (sentenceToYield, normal [c; prev])
     | None, Char c -> Transition (sentenceToYield, sentenceLetter [] c)
     
-let continueConsumingAfterPossibleSentenceEnd soFar = M.machine ^ fun c ->
-    match c with
+let private continueConsumingAfterI soFar = M.machine ^ function
+    | EndOfInput ->
+        Transition (completeSentence soFar, M.halt ())
+    | Char c when Char.IsWhiteSpace c ->
+        Transition (noSentences, normal (c :: soFar))
+    | Char _ -> Halt
+    
+let private continueConsumingAfterPossibleSentenceEnd soFar = M.machine ^ function
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
     | Char c when Char.IsWhiteSpace c ->
         Transition (noSentences, continueConsumingAfterPossibleSentenceEnd (c :: soFar))
     | Char c when Char.IsDigit c || Char.IsLower c ->
         Transition (noSentences, normal (c :: soFar))
+    | Char ('I' as c) ->
+        Transition (noSentences, continueConsumingAfterI (c :: soFar))
     | Char _ ->
         Halt
-        // Transition (completeSentence soFar, trimStartingSpaces (Some c))
 
 let private appendSentence (sentence : List<'a>) (sentences : List<List<'a>>) : List<'a> = (sentences @ [sentence]) |> List.collect id
 
-let consumeDots soFar = M.machine ^ fun c ->
-    match c with
+let private tryFirst first second =
+    M.tryFirst (List.isEmpty >> not) [] appendSentence first second
+
+let private consumeDots soFar = M.machine ^ function
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
     | Char ('.' as c) ->
         Transition (noSentences, consumeDots (c :: soFar))
     | Char c ->
-        let next = M.tryFirst (List.isEmpty >> not) [] appendSentence (continueConsumingAfterPossibleSentenceEnd (c :: soFar)) (trimStartingSpaces (Some soFar) (Some c))
-        Transition (noSentences, next)
+        // let next = tryFirst (continueConsumingAfterPossibleSentenceEnd (c :: soFar)) (trimStartingSpaces (Some soFar) (Some c))
+        // Transition (noSentences, next)
+        Transition (completeSentence soFar, trimStartingSpaces None (Some c))
     
-let consumeTerminators soFar = M.machine ^ fun (c : Input) ->
+let private consumeTerminators soFar = M.machine ^ fun (c : Input) ->
     match c with
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
@@ -125,11 +135,18 @@ let consumeTerminators soFar = M.machine ^ fun (c : Input) ->
     | Char c ->
         Transition (completeSentence soFar, trimStartingSpaces None (Some c))
 
-let sentenceLetter soFar c =
+let private sentenceLetter soFar c =
+    let endsWithLetter =
+        match soFar with
+        | [] -> false
+        | c :: _ -> Char.IsLetter c
     let sentence = c :: soFar
     match c with
     | '"' ->
         insideDoubleQuotes sentence c
+    | ''' when endsWithLetter ->
+        // It's an apostrophe, not a quote.
+        normal sentence
     | ''' ->
         insideSingleQuotes sentence c
     | SentenceTerminatorNotDot ->
@@ -138,14 +155,14 @@ let sentenceLetter soFar c =
         consumeDots sentence
     | _ -> normal sentence
 
-let normal (soFar : List<char>) = M.machine ^ fun c ->
+let private normal (soFar : List<char>) = M.machine ^ fun c ->
     match c with
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
     | Char c ->
         Transition (noSentences, sentenceLetter soFar c)
         
-let insideDoubleQuotes soFar quote = M.machine ^ fun c ->
+let private insideDoubleQuotes soFar quote = M.machine ^ fun c ->
     match c with
     | EndOfInput ->
         // todo mikbri Strictly speaking, quotes are not closed.
@@ -154,28 +171,31 @@ let insideDoubleQuotes soFar quote = M.machine ^ fun c ->
         let sentence = c :: soFar
         match c, soFar with
         | Equals quote, StringEndsWithTerminator ->
-            // todo support "A?" said B. - after the "?"" the sentence does not end.
-            Transition (completeSentence sentence, trimStartingSpaces None None)
+            // "A?" said B. - after the "?"" the sentence does not end.
+            let next = tryFirst
+                           (continueConsumingAfterPossibleSentenceEnd sentence)
+                           (trimStartingSpaces (Some sentence) None)
+            Transition (noSentences, next)
         | Equals quote, _ ->
             Transition (noSentences, normal sentence)
         | _ ->
             Transition (noSentences, insideDoubleQuotes sentence quote)
 
 // todo maintain a stack of quotes to allow nesting?
-let insideSingleQuotes soFar quote = M.machine ^ fun c ->
+let private insideSingleQuotes soFar quote = M.machine ^ fun c ->
     match c with
     | EndOfInput ->
         // todo mikbri Strictly speaking, quotes are not closed.
         Transition (completeSentence soFar, M.halt ())
     | Char c ->
         let sentence = c :: soFar
-        // todo detect usage as in "Boy's".
         match c, soFar with
         | Equals quote, StringEndsWithTerminator ->
             // 'A?' said B. - after the "?'" the sentence does not end.
-            let next = M.tryFirst (List.isEmpty >> not) [] appendSentence (continueConsumingAfterPossibleSentenceEnd sentence) (trimStartingSpaces (Some sentence) None)
+            let next = tryFirst (continueConsumingAfterPossibleSentenceEnd sentence) (trimStartingSpaces (Some sentence) None)
             Transition (noSentences, next)
         | Equals quote, _ ->
+            // todo detect usage as in "Boy's".
             Transition (noSentences, normal sentence)
         | _ ->
             Transition (noSentences, insideSingleQuotes sentence quote)

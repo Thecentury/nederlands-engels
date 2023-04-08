@@ -3,6 +3,7 @@
 open System
 open System.IO
 open System.Text.RegularExpressions
+open AngleSharp.Dom
 open AngleSharp.Html.Dom
 open FSharp.Core.Fluent
 open AngleSharp
@@ -21,8 +22,12 @@ let normalizeSpaces (s : string) =
     
 let parseEn (html : IHtmlElement) =
     html
-        .QuerySelectorAll("span, p")
-        .filter(fun e -> e.Children.Length = 0)
+        .QuerySelectorAll("span")
+        // Exclude links.
+        .filter(fun e -> e.ClassName <> "calibre3")
+        .map(fun e -> e :> INode)
+        .collect(fun e -> e.ChildNodes)
+        .choose(function | :? IText as t -> Some t | _ -> None)
         .map(fun e -> normalizeSpaces e.TextContent)
         .filter(not << String.IsNullOrWhiteSpace)
         .toList()
@@ -40,8 +45,10 @@ let main _ =
     let nl = loadHtml @"../../../../Data/nl/1.xhtml" |> parseNl
     
     let enSentences = en |> Seq.collect SentenceParsing.splitIntoSentences |> String.concat "\n\n"
-    let nlSentences = nl |> Seq.collect SentenceParsing.splitIntoSentences |> String.concat "\n\n"
+    // let nlSentences = nl |> Seq.collect SentenceParsing.splitIntoSentences |> String.concat "\n\n"
     
-    printfn $"EN:\n\n%s{enSentences}\n\nNL:\n\n%s{nlSentences}"
+    printfn $"EN:\n\n%s{enSentences}"
+    printfn "\n\n"
+    // printfn $"NL:\n\n%s{nlSentences}"
     
     0

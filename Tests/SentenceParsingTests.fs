@@ -34,6 +34,25 @@ type SentenceParsingTests () =
                 "I."
             |]
             SentenceParsingTests.example "Mr. Crab" [| "Mr. Crab" |]
+            SentenceParsingTests.example "Boy's band" [| "Boy's band" |]
+            SentenceParsingTests.example "\"A. B.\"" [| "\"A. B.\"" |]
+            SentenceParsingTests.example "'A, ' b. C." [| "'A, ' b."; "C." |]
+            SentenceParsingTests.example "\"A?\" b." [| "\"A?\" b." |]
+            SentenceParsingTests.example "\"Q?\" I asked." [| "\"Q?\" I asked." |]
+            SentenceParsingTests.example "\"He. If.\"" [| "\"He. If.\"" |]
+            SentenceParsingTests.example "\"A,\" h. \"B.\"" [| "\"A,\" h."; "\"B.\"" |]
+            SentenceParsingTests.example
+                    "\"He either avoids the place for weeks, or else he works there from morning to night. If you like, we shall drive round together after luncheon.\""
+                    [| "\"He either avoids the place for weeks, or else he works there from morning to night. If you like, we shall drive round together after luncheon.\"" |]
+            SentenceParsingTests.example
+                "\"Poor devil!\" he said, commiseratingly, after he had listened to my misfortunes. \"What are you up to now?\""
+                [| "\"Poor devil!\" he said, commiseratingly, after he had listened to my misfortunes."; "\"What are you up to now?\"" |]
+            SentenceParsingTests.example
+                "\"P!\" s. \"W?\""
+                [| "\"P!\" s."; "\"W?\"" |]
+            SentenceParsingTests.example
+                "\"What are you up to now?\""
+                [| "\"What are you up to now?\"" |]
         |]
 
     [<Theory>]
