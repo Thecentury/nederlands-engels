@@ -58,6 +58,8 @@ type MainWindow() as this =
           | Key.M, KeyModifiers.None -> dispatch Msg.MergeUp
           | Key.OemPlus, KeyModifiers.None -> dispatch Msg.IncreaseRowsBeforeAfter
           | Key.OemMinus, KeyModifiers.None -> dispatch Msg.DecreaseRowsBeforeAfter
+          | Key.U, KeyModifiers.None -> dispatch Msg.Undo
+          | Key.R, KeyModifiers.None -> dispatch Msg.Redo
           | _ -> ())
         emptyDisposable
       )])
