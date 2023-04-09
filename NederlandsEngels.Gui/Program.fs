@@ -14,7 +14,8 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
 
 open NederlandsEngels
-open NederlandsEngels.Gui.Model
+// open NederlandsEngels.Gui.Model
+open NederlandsEngels.GUI.Model
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
@@ -45,7 +46,7 @@ type MainWindow() as this =
       { new IDisposable with
           member _.Dispose() = () }
 
-    Elmish.Program.mkProgram (fun _ -> init enSentences nlSentences) update View.view
+    Elmish.Program.mkProgram (fun _ -> init enSentences nlSentences) update ViewZipper.view
     |> Program.withHost this
     |> Program.withSubscription (fun _ -> [(["onKeyDown"], fun dispatch ->
         this.KeyDown.Add(fun e ->
@@ -55,6 +56,8 @@ type MainWindow() as this =
           | Key.Up, KeyModifiers.None -> dispatch Msg.MoveFocusUp
           | Key.Down, KeyModifiers.None -> dispatch Msg.MoveFocusDown
           | Key.M, KeyModifiers.None -> dispatch Msg.MergeUp
+          | Key.OemPlus, KeyModifiers.None -> dispatch Msg.IncreaseRowsBeforeAfter
+          | Key.OemMinus, KeyModifiers.None -> dispatch Msg.DecreaseRowsBeforeAfter
           | _ -> ())
         emptyDisposable
       )])

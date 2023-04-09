@@ -10,12 +10,16 @@
     <Compile Include="Machines.fs" />
     <Compile Include="SentenceParsing.fs" />
     <Compile Include="EpubParsing.fs" />
+    <Compile Include="Zipper.fs" />
+    <Compile Include="Lens.fs" />
     <Compile Include="TUI\Model.fs" />
+    <Compile Include="GUI\Model.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.0.1" />
+    <PackageReference Include="Elmish" Version="4.0.1" />
     <PackageReference Include="FSharp.Core.Fluent" Version="3.0.2" />
     <PackageReference Include="Terminal.Gui.Elmish" Version="2.1.172" />
   </ItemGroup>
