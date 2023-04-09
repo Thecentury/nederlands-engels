@@ -80,9 +80,10 @@ type Model = {
     History : UndoRedoStack<Position>
     Selection : Selection
     ShowRowsBeforeAfter : int
+    // todo store last observed position
 }
 
-let init (en : List<string>) (nl : List<string>) =
+let createFromSentences (en : List<string>) (nl : List<string>) =
     let en = en.map(Some).append(Seq.initInfinite (constant None))
     let nl = nl.map(Some).append(Seq.initInfinite (constant None))
     let entries =
@@ -91,14 +92,22 @@ let init (en : List<string>) (nl : List<string>) =
         |> Seq.takeWhile Option.isSome
         |> Seq.choose id
         |> Seq.toList
-    // todo load from a state file
     let model = {
         Position = Zipper.fromList entries
         History = UndoRedo.empty
         Selection = English
         ShowRowsBeforeAfter = 10
     }
-    model, Cmd.none
+    model
+
+let createFromState (state : List<Entry>) =
+    let model = {
+        Position = Zipper.fromList state
+        History = UndoRedo.empty
+        Selection = English
+        ShowRowsBeforeAfter = 10
+    }
+    model
 
 let private positionLens = Lens.create (fun m -> m.Position) (fun m position -> { m with Position = position })
 
@@ -112,6 +121,7 @@ type Msg =
     | DecreaseRowsBeforeAfter
     | Undo
     | Redo
+    | Exit
 
 let updateCore (msg : Msg) (model : Model) =
     match msg with
@@ -129,6 +139,7 @@ let updateCore (msg : Msg) (model : Model) =
         match UndoRedo.redo model.History with
         | None -> model
         | Some (history, position) -> { model with Position = position; History = history }
+    | Exit -> model
     | MergeUp -> // todo tests
         let sentencesLens = sentencesLens model.Selection
         match model.Position.Left, sentencesLens.Get model.Position.Focus with

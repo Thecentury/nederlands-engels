@@ -14,10 +14,19 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
 
 open NederlandsEngels
-// open NederlandsEngels.Gui.Model
 open NederlandsEngels.GUI.Model
 
 (*--------------------------------------------------------------------------------------------------------------------*)
+
+module FileSystem =
+
+  let root =
+    if Directory.Exists "../Data" then
+      // When running using 'dotnet run'
+      "../Data"
+    else
+      // When running from the 'bin' folder
+      "../../../../Data"
 
 type MainWindow() as this =
   inherit HostWindow()
@@ -26,28 +35,27 @@ type MainWindow() as this =
     base.Title <- "Nederlands-Engels"
     base.WindowState <- WindowState.Maximized
 
-    let root =
-      if Directory.Exists "../Data" then
-        // When running using 'dotnet run'
-        "../Data"
-      else
-        // When running from the 'bin' folder
-        "../../../../Data"
+    let root = FileSystem.root
 
-    // let en = loadHtml (Path.Combine (root, "en/1.xhtml")) |> parseEn
-    // let nl = loadHtml (Path.Combine (root, "nl/1.xhtml")) |> parseNl
-    //
-    // let enSentences = en |> String.concat " " |> SentenceParsing.splitIntoSentences |> Array.toList
-    // let nlSentences = nl |> String.concat " " |> SentenceParsing.splitIntoSentences |> Array.toList
-    let enSentences = File.ReadAllLines (Path.Combine(root, "en/1.txt")) |> Array.toList
-    let nlSentences = File.ReadAllLines (Path.Combine(root, "nl/1.txt")) |> Array.toList
+    let stateFile = Path.Combine(root, "mapping.json")
+    let model =
+      if File.Exists stateFile then
+        let state = Persistence.load stateFile
+        createFromState state
+      else
+        let enSentences = File.ReadAllLines (Path.Combine(root, "en/1.txt")) |> Array.toList
+        let nlSentences = File.ReadAllLines (Path.Combine(root, "nl/1.txt")) |> Array.toList
+        createFromSentences enSentences nlSentences
 
     let emptyDisposable =
       { new IDisposable with
           member _.Dispose() = () }
 
-    Elmish.Program.mkProgram (fun _ -> init enSentences nlSentences) update ViewZipper.view
+    Elmish.Program.mkProgram (fun _ -> model, Cmd.none) update ViewZipper.view
     |> Program.withHost this
+    |> Program.withTermination ((=) Msg.Exit) (fun model ->
+      Persistence.save stateFile model
+      this.Close ())
     |> Program.withSubscription (fun _ -> [(["onKeyDown"], fun dispatch ->
         this.KeyDown.Add(fun e ->
           match e.Key, e.KeyModifiers with
@@ -60,6 +68,7 @@ type MainWindow() as this =
           | Key.OemMinus, KeyModifiers.None -> dispatch Msg.DecreaseRowsBeforeAfter
           | Key.U, KeyModifiers.None -> dispatch Msg.Undo
           | Key.R, KeyModifiers.None -> dispatch Msg.Redo
+          | Key.Q, _ -> dispatch Msg.Exit
           | _ -> ())
         emptyDisposable
       )])
@@ -82,7 +91,6 @@ type App() =
     match this.ApplicationLifetime with
     | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
       let mainWindow = MainWindow ()
-      // mainWindow.Content <- View.view mainWindow desktopLifetime
       desktopLifetime.MainWindow <- mainWindow
       desktopLifetime.ShutdownMode <- ShutdownMode.OnMainWindowClose
     | _ -> ()

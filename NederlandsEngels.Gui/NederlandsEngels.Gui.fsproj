@@ -9,6 +9,7 @@
         <Compile Include="Model.fs" />
         <Compile Include="View.fs" />
         <Compile Include="ViewZipper.fs" />
+        <Compile Include="Persistence.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
@@ -19,6 +20,7 @@
         <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
         <PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.1" />
       <PackageReference Include="Microsoft.NETCore.Targets" Version="5.0.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
       <PackageReference Include="SkiaSharp" Version="2.88.3" />
       <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     </ItemGroup>
