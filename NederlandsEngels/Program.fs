@@ -21,16 +21,16 @@ let main _ =
     let nl = loadHtml (Path.Combine (root, "nl/1.xhtml")) |> parseNl
 
     let enSentences = en |> String.concat " " |> SentenceParsing.splitIntoSentences
-    let nlSentences = nl |> String.concat " " |> SentenceParsing.splitIntoSentences
+    let nlSentences = nl |> Seq.collect SentenceParsing.splitIntoSentences |> Seq.toList
 
-    // File.WriteAllLines ((Path.Combine (root, "en/1.txt")), enSentences)
-    // File.WriteAllLines ((Path.Combine (root, "nl/1.txt")), nlSentences)
+    File.WriteAllLines ((Path.Combine (root, "en/1.txt")), enSentences)
+    File.WriteAllLines ((Path.Combine (root, "nl/1.txt")), nlSentences)
     //
     // Environment.Exit(0)
 
-    let zipped = enSentences.toSeq().zip(nlSentences)
-
-    TUI.Model.run (enSentences.toList()) (nlSentences.toList())
+    // let zipped = enSentences.toSeq().zip(nlSentences)
+    //
+    // TUI.Model.run (enSentences.toList()) (nlSentences.toList())
 
     // for en, nl in zipped do
     //     printfn $"%s{en}"
