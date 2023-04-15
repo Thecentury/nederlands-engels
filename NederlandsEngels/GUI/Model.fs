@@ -74,14 +74,18 @@ module UndoRedo =
 
 type Position = Zipper<Entry>
 
-// todo undo/redo
 type Model = {
     Position : Position
     History : UndoRedoStack<Position>
     Selection : Selection
     ShowRowsBeforeAfter : int
     // todo store last observed position
-}
+} with
+  member this.EnglishSentences =
+    this.Position |> Zipper.enumerateOutOfOrder |> Seq.collect (fun e -> e.English) |> Seq.length
+
+  member this.DutchSentences =
+    this.Position |> Zipper.enumerateOutOfOrder |> Seq.collect (fun e -> e.Dutch) |> Seq.length
 
 let createFromSentences (en : List<string>) (nl : List<string>) =
     let en = en.map(Some).append(Seq.initInfinite (constant None))

@@ -60,7 +60,7 @@ type MainWindow(chapterName : string) as this =
 
         createFromSentences enSentences nlSentences
 
-    Elmish.Program.mkProgram (fun _ -> model, Cmd.none) update ViewZipper.view
+    Elmish.Program.mkProgram (fun _ -> model, Cmd.none) update View.view
     |> Program.withHost this
     |> Program.withTermination ((=) Msg.Exit) (fun model ->
       Persistence.save stateFile model

@@ -29,3 +29,9 @@ module Zipper =
         match z.Right with
         | [] -> None
         | h :: t -> Some { Left = z.Focus :: z.Left; Focus = h; Right = t }
+
+    let enumerateOutOfOrder (z : Zipper<'a>) = seq {
+      yield! z.Left
+      yield z.Focus
+      yield! z.Right
+    }

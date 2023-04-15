@@ -1,4 +1,4 @@
-module NederlandsEngels.Gui.ViewZipper
+module NederlandsEngels.Gui.View
 
 open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
@@ -76,12 +76,36 @@ let view (model : Model) dispatch =
                 |> Seq.toList
             )
         ] |> generalize
-
-    Grid.create [
-        Grid.rowDefinitions "*,Auto,*"
-        Grid.children [
-            before
-            focus
-            after
-        ]
+    let grid =
+      Grid.create [
+          Grid.rowDefinitions "*,Auto,*"
+          Grid.children [
+              before
+              focus
+              after
+          ]
+      ]
+    DockPanel.create [
+      DockPanel.lastChildFill true
+      DockPanel.children [
+          Grid.create [
+            DockPanel.dock Dock.Top
+            Grid.columnDefinitions "*,*"
+            Grid.margin (0, 5)
+            Grid.horizontalAlignment HorizontalAlignment.Stretch
+            Grid.children [
+                TextBlock.create [
+                    TextBlock.text $"English: {model.EnglishSentences}"
+                    TextBlock.horizontalAlignment HorizontalAlignment.Center
+                    Grid.column 0
+                ] |> generalize
+                TextBlock.create [
+                    TextBlock.text $"Dutch: {model.DutchSentences}"
+                    TextBlock.horizontalAlignment HorizontalAlignment.Center
+                    Grid.column 1
+                ] |> generalize
+            ]
+          ]
+          grid
+      ]
     ]
