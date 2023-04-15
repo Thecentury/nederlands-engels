@@ -84,8 +84,14 @@ type Model = {
   member this.EnglishSentences =
     this.Position |> Zipper.enumerateOutOfOrder |> Seq.collect (fun e -> e.English) |> Seq.length
 
+  member this.EnglishPosition =
+    (this.Position.Left |> Seq.map (fun e -> e.English.Length) |> Seq.sum) + 1
+
   member this.DutchSentences =
     this.Position |> Zipper.enumerateOutOfOrder |> Seq.collect (fun e -> e.Dutch) |> Seq.length
+
+  member this.DutchPosition =
+    (this.Position.Left |> Seq.map (fun e -> e.Dutch.Length) |> Seq.sum) + 1
 
 let createFromSentences (en : List<string>) (nl : List<string>) =
     let en = en.map(Some).append(Seq.initInfinite (constant None))
@@ -100,7 +106,7 @@ let createFromSentences (en : List<string>) (nl : List<string>) =
         Position = Zipper.fromList entries
         History = UndoRedo.empty
         Selection = English
-        ShowRowsBeforeAfter = 10
+        ShowRowsBeforeAfter = 6
     }
     model
 
@@ -109,7 +115,7 @@ let createFromState (state : List<Entry>) =
         Position = Zipper.fromList state
         History = UndoRedo.empty
         Selection = English
-        ShowRowsBeforeAfter = 10
+        ShowRowsBeforeAfter = 6
     }
     model
 

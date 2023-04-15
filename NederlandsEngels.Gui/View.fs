@@ -95,12 +95,12 @@ let view (model : Model) dispatch =
             Grid.horizontalAlignment HorizontalAlignment.Stretch
             Grid.children [
                 TextBlock.create [
-                    TextBlock.text $"English: {model.EnglishSentences}"
+                    TextBlock.text $"English: {model.EnglishPosition} / {model.EnglishSentences}"
                     TextBlock.horizontalAlignment HorizontalAlignment.Center
                     Grid.column 0
                 ] |> generalize
                 TextBlock.create [
-                    TextBlock.text $"Dutch: {model.DutchSentences}"
+                    TextBlock.text $"Dutch: {model.DutchPosition} / {model.DutchSentences}"
                     TextBlock.horizontalAlignment HorizontalAlignment.Center
                     Grid.column 1
                 ] |> generalize
