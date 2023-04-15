@@ -8,10 +8,12 @@
   <ItemGroup>
     <Compile Include="Prelude.fs" />
     <Compile Include="Machines.fs" />
+    <Compile Include="SeqMachines.fs" />
     <Compile Include="SentenceParsing.fs" />
     <Compile Include="EpubParsing.fs" />
     <Compile Include="Zipper.fs" />
     <Compile Include="Lens.fs" />
+    <Compile Include="ProperNamesDetection.fs" />
     <Compile Include="TUI\Model.fs" />
     <Compile Include="GUI\Model.fs" />
     <Compile Include="Program.fs" />

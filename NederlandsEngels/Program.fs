@@ -1,8 +1,6 @@
 ﻿module NederlandsEngels.Program
 
-open System
 open System.IO
-open FSharp.Core.Fluent
 open EpubParsing
 
 (*--------------------------------------------------------------------------------------------------------------------*)

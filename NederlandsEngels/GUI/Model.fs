@@ -5,15 +5,19 @@ open FSharp.Core.Fluent
 
 open NederlandsEngels
 
+open ProperNamesDetection
+
 (*--------------------------------------------------------------------------------------------------------------------*)
 
 type Selection =
     | English
     | Dutch
 
+type SentenceParts = List<AnnotatedValue<string>>
+
 type Entry = {
-    English : List<string>
-    Dutch : List<string>
+    English : List<SentenceParts>
+    Dutch : List<SentenceParts>
 }
 with member this.IsEmpty = this.English.IsEmpty && this.Dutch.IsEmpty
 
@@ -28,7 +32,9 @@ let sentencesLens selection =
 let private mkEntry (en : Option<string>) (nl : Option<string>) =
     match en, nl with
     | None, None -> None
-    | en, nl -> Some { English = Option.toList en; Dutch = Option.toList nl }
+    | en, nl ->
+      let detectNames l = l |> Option.toList |> List.map detectNames
+      Some { English = detectNames en; Dutch = detectNames nl }
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 

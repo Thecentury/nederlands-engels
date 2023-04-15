@@ -1,9 +1,9 @@
 module rec NederlandsEngels.SentenceParsing
 
 open System
-open FSharp.Core.Fluent
 
 open NederlandsEngels.Machines
+open NederlandsEngels.SeqMachines
 
 module M = Machine
 
@@ -12,11 +12,11 @@ module M = Machine
 (*--------------------------------------------------------------------------------------------------------------------*)
 
 module private Char =
-    
+
     let isQuote = function
         | '"' | ''' -> true
         | _ -> false
-        
+
 (*--------------------------------------------------------------------------------------------------------------------*)
 
 let private (|Equals|_|) example value =
@@ -24,7 +24,7 @@ let private (|Equals|_|) example value =
         Some ()
     else
         None
-        
+
 let private (|StringEndsWithTerminator|_|) = function
     | '.' :: _
     | '?' :: _
@@ -33,15 +33,15 @@ let private (|StringEndsWithTerminator|_|) = function
     | ' ' :: '?' :: _
     | ' ' :: '!' :: _ -> Some ()
     | _ -> None
-    
+
 let private (|SentenceTerminator|_|) = function
     | '.' | '?' | '!' -> Some ()
     | _ -> None
-    
+
 let private (|SentenceTerminatorNotDot|_|) = function
     | '?' | '!' -> Some ()
     | _ -> None
-    
+
 // Dr., Mr., Mrs., etc. + all caps
 
 let private abbreviations = [|
@@ -66,16 +66,12 @@ let private isAbbreviation (sentence : List<char>) =
                 isAbbreviation abbr (index - 1) rest
             else
                 false
-                    
+
     abbreviations |> Array.exists (fun abbr -> isAbbreviation abbr (abbr.Length - 1) sentence)
 
 let private restoreSentence = List.rev >> List.toArray >> String
 let private completeSentence = restoreSentence >> List.singleton
 let private noSentences = List.empty
-
-type private Input =
-    | Char of char
-    | EndOfInput
 
 // todo triple dots
 
@@ -83,32 +79,32 @@ let private trimStartingSpaces sentenceToYield previous = M.machine ^ fun c ->
     let sentenceToYield = sentenceToYield |> Option.map restoreSentence |> Option.toList
     match previous, c with
     | None, EndOfInput -> Transition (sentenceToYield, M.halt ())
-    | Some ' ', Char ' '
-    | None, Char ' ' -> Transition (sentenceToYield, trimStartingSpaces None None)
-    | Some ' ', Char c -> Transition (sentenceToYield, sentenceLetter [] c)
+    | Some ' ', Element ' '
+    | None, Element ' ' -> Transition (sentenceToYield, trimStartingSpaces None None)
+    | Some ' ', Element c -> Transition (sentenceToYield, sentenceLetter [] c)
     | Some prev, EndOfInput ->
         let sentences = String [| prev |] :: sentenceToYield
         Transition (sentences, M.halt())
-    | Some prev, Char c -> Transition (sentenceToYield, normal [c; prev])
-    | None, Char c -> Transition (sentenceToYield, sentenceLetter [] c)
-    
+    | Some prev, Element c -> Transition (sentenceToYield, normal [c; prev])
+    | None, Element c -> Transition (sentenceToYield, sentenceLetter [] c)
+
 let private continueConsumingAfterI soFar = M.machine ^ function
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
-    | Char c when Char.IsWhiteSpace c ->
+    | Element c when Char.IsWhiteSpace c ->
         Transition (noSentences, normal (c :: soFar))
-    | Char _ -> Halt
-    
+    | Element _ -> Halt
+
 let private continueConsumingAfterPossibleSentenceEnd soFar = M.machine ^ function
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
-    | Char c when Char.IsWhiteSpace c ->
+    | Element c when Char.IsWhiteSpace c ->
         Transition (noSentences, continueConsumingAfterPossibleSentenceEnd (c :: soFar))
-    | Char c when Char.IsDigit c || Char.IsLower c ->
+    | Element c when Char.IsDigit c || Char.IsLower c ->
         Transition (noSentences, normal (c :: soFar))
-    | Char ('I' as c) ->
+    | Element ('I' as c) ->
         Transition (noSentences, continueConsumingAfterI (c :: soFar))
-    | Char _ ->
+    | Element _ ->
         Halt
 
 let private appendSentence (sentence : List<'a>) (sentences : List<List<'a>>) : List<'a> = (sentences @ [sentence]) |> List.collect id
@@ -119,20 +115,18 @@ let private tryFirst first second =
 let private consumeDots soFar = M.machine ^ function
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
-    | Char ('.' as c) ->
+    | Element ('.' as c) ->
         Transition (noSentences, consumeDots (c :: soFar))
-    | Char c ->
-        // let next = tryFirst (continueConsumingAfterPossibleSentenceEnd (c :: soFar)) (trimStartingSpaces (Some soFar) (Some c))
-        // Transition (noSentences, next)
+    | Element c ->
         Transition (completeSentence soFar, trimStartingSpaces None (Some c))
-    
-let private consumeTerminators soFar = M.machine ^ fun (c : Input) ->
+
+let private consumeTerminators soFar = M.machine ^ fun (c : Input<char>) ->
     match c with
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
-    | Char (SentenceTerminator as c) ->
+    | Element (SentenceTerminator as c) ->
         Transition (noSentences, consumeTerminators (c :: soFar))
-    | Char c ->
+    | Element c ->
         Transition (completeSentence soFar, trimStartingSpaces None (Some c))
 
 let private sentenceLetter soFar c =
@@ -159,15 +153,15 @@ let private normal (soFar : List<char>) = M.machine ^ fun c ->
     match c with
     | EndOfInput ->
         Transition (completeSentence soFar, M.halt ())
-    | Char c ->
+    | Element c ->
         Transition (noSentences, sentenceLetter soFar c)
-        
+
 let private insideDoubleQuotes soFar quote = M.machine ^ fun c ->
     match c with
     | EndOfInput ->
         // todo mikbri Strictly speaking, quotes are not closed.
         Transition (completeSentence soFar, M.halt ())
-    | Char c ->
+    | Element c ->
         let sentence = c :: soFar
         match c, soFar with
         | Equals quote, StringEndsWithTerminator ->
@@ -187,7 +181,7 @@ let private insideSingleQuotes soFar quote = M.machine ^ fun c ->
     | EndOfInput ->
         // todo mikbri Strictly speaking, quotes are not closed.
         Transition (completeSentence soFar, M.halt ())
-    | Char c ->
+    | Element c ->
         let sentence = c :: soFar
         match c, soFar with
         | Equals quote, StringEndsWithTerminator ->
@@ -200,26 +194,6 @@ let private insideSingleQuotes soFar quote = M.machine ^ fun c ->
             Transition (noSentences, normal sentence)
         | _ ->
             Transition (noSentences, insideSingleQuotes sentence quote)
-        
+
 let splitIntoSentences (s : string) =
-    let mutable machine = trimStartingSpaces None None
-    let sentences = ResizeArray()
-    
-    let inputs =
-        s.map(Char).append([EndOfInput])
-    
-    let mutable index = -1
-    for i in inputs do
-        index <- index + 1
-        let trans = M.step i machine
-        match trans with
-        | Halt ->
-            let str = $"{s.Substring(0, index)}{s.Substring(index)}"
-            let pointer = String.replicate index " " + "^"
-            let msg = $"'Unexpected end of sentence at position {index + 1} ('{i}'):\n{str}\n{pointer}"
-            failwith msg
-        | Transition (newSentences, nextMachine) ->
-            machine <- nextMachine
-            sentences.AddRange newSentences
-    
-    sentences.ToArray()
+    applyToCharacters s (trimStartingSpaces None None) |> List.collect id |> List.toArray

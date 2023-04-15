@@ -1,9 +1,12 @@
 namespace NederlandsEngels.Gui
 
 open System.IO
+open Newtonsoft.Json
+
 open NederlandsEngels
 open NederlandsEngels.GUI.Model
-open Newtonsoft.Json
+
+open ProperNamesDetection
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
@@ -17,12 +20,15 @@ type State = List<PersistenceEntry>
 module Persistence =
 
     let private toPersistenceEntry (entry : Entry) =
-        { English = entry.English
-          Dutch = entry.Dutch }
+        let text (annotated : AnnotatedValue<_>) = annotated.Value
+        let toString = List.map (List.map text >> String.concat "")
+        { English = toString entry.English
+          Dutch = toString entry.Dutch }
 
     let private toEntry (entry : PersistenceEntry) : Entry =
-        { English = entry.English
-          Dutch = entry.Dutch }
+        let detectNames = List.map detectNames
+        { English = detectNames entry.English
+          Dutch = detectNames entry.Dutch }
 
     let save (fileName : string) (model : Model) =
         let state = model.Position |> Zipper.toList |> List.map toPersistenceEntry

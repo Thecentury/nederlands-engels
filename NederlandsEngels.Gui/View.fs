@@ -1,5 +1,6 @@
 module NederlandsEngels.Gui.View
 
+open Avalonia.Controls.Documents
 open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.Controls
@@ -8,14 +9,49 @@ open Avalonia.Layout
 open Avalonia.Media
 
 open NederlandsEngels.GUI.Model
+open NederlandsEngels.ProperNamesDetection
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
+let private toBrush (s : string) =
+    SolidColorBrush(Color.Parse($"#{s}")).ToImmutable()
+
+let private nameBrushes =
+  [|
+    toBrush "005F73"
+    toBrush "0A9396"
+    toBrush "94D2BD"
+    toBrush "E9D8A6"
+    toBrush "EE9B00"
+    toBrush "CA6702"
+    toBrush "BB3E03"
+    toBrush "AE2012"
+  |]
+
+let private nameBrush (name : string) =
+    nameBrushes[(abs (name.GetHashCode())) % nameBrushes.Length]
+
 let private renderEntry _dispatch selection (entry : Entry) =
-    let renderString s =
+    let renderSentence (sentence : List<AnnotatedValue<string>>) =
+        let run (value : AnnotatedValue<string>) =
+            match value.Category with
+            | ProperName ->
+                InlineUIContainer.create [
+                  InlineUIContainer.child (
+                    TextBlock.create [
+                      TextBlock.inlines [
+                        Bold.createText value.Value |> generalize
+                      ]
+                      TextBlock.foreground (nameBrush value.Value)
+                    ]
+                  )
+                ] |> generalize
+            | RegularText ->
+                Run.createText value.Value |> generalize
+
         TextBlock.create [
             TextBlock.textWrapping TextWrapping.Wrap
-            TextBlock.text s
+            TextBlock.inlines (sentence |> List.map run)
         ] |> generalize
 
     let wrapWithBorder column expectedSelection (element : IView) =
@@ -34,10 +70,10 @@ let private renderEntry _dispatch selection (entry : Entry) =
         Grid.columnDefinitions "*,*"
         Grid.children [
             StackPanel.create [
-                StackPanel.children (entry.English |> List.map renderString)
+                StackPanel.children (entry.English |> List.map renderSentence)
             ] |> wrapWithBorder 0 Selection.English
             StackPanel.create [
-                StackPanel.children (entry.Dutch |> List.map renderString)
+                StackPanel.children (entry.Dutch |> List.map renderSentence)
             ] |> wrapWithBorder 1 Selection.Dutch
         ]
     ] |> generalize
