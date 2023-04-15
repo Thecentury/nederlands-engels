@@ -41,7 +41,7 @@ type MainWindow(chapterName : string) as this =
   inherit HostWindow()
 
   do
-    base.Title <- "Nederlands-Engels"
+    base.Title <- $"Nederlands-Engels, chapter {chapterName}"
     base.WindowState <- WindowState.Maximized
 
     let root = FileSystem.root
@@ -60,32 +60,37 @@ type MainWindow(chapterName : string) as this =
 
         createFromSentences enSentences nlSentences
 
-    let emptyDisposable =
-      { new IDisposable with
-          member _.Dispose() = () }
-
     Elmish.Program.mkProgram (fun _ -> model, Cmd.none) update ViewZipper.view
     |> Program.withHost this
     |> Program.withTermination ((=) Msg.Exit) (fun model ->
       Persistence.save stateFile model
-      this.Close ())
+      Environment.Exit 0
+      )
     |> Program.withSubscription (fun _ -> [(["onKeyDown"], fun dispatch ->
-        this.KeyDown.Add(fun e ->
-          match e.Key, e.KeyModifiers with
-          | Key.Left, KeyModifiers.None -> dispatch Msg.MoveFocusLeft
-          | Key.Right, KeyModifiers.None -> dispatch Msg.MoveFocusRight
-          | Key.Up, KeyModifiers.None -> dispatch Msg.MoveFocusUp
-          | Key.Down, KeyModifiers.None -> dispatch Msg.MoveFocusDown
-          | Key.M, KeyModifiers.None -> dispatch Msg.MergeUp
-          | Key.OemPlus, KeyModifiers.None -> dispatch Msg.IncreaseRowsBeforeAfter
-          | Key.OemMinus, KeyModifiers.None -> dispatch Msg.DecreaseRowsBeforeAfter
-          | Key.U, KeyModifiers.None -> dispatch Msg.Undo
-          | Key.R, KeyModifiers.None -> dispatch Msg.Redo
-          | Key.Q, _ -> dispatch Msg.Exit
-          | _ -> ())
-        emptyDisposable
+        let onKeyDown =
+          fun (e : KeyEventArgs) ->
+              let dispatch msg =
+                dispatch msg
+                e.Handled <- true
+              match e.Key, e.KeyModifiers with
+              | Key.Left, KeyModifiers.None -> dispatch Msg.MoveFocusLeft
+              | Key.Right, KeyModifiers.None -> dispatch Msg.MoveFocusRight
+              | Key.Up, KeyModifiers.None -> dispatch Msg.MoveFocusUp
+              | Key.Down, KeyModifiers.None -> dispatch Msg.MoveFocusDown
+              | Key.M, KeyModifiers.None -> dispatch Msg.MergeUp
+              | Key.OemPlus, KeyModifiers.None -> dispatch Msg.IncreaseRowsBeforeAfter
+              | Key.OemMinus, KeyModifiers.None -> dispatch Msg.DecreaseRowsBeforeAfter
+              | Key.U, KeyModifiers.None -> dispatch Msg.Undo
+              | Key.R, KeyModifiers.None -> dispatch Msg.Redo
+              | Key.Escape, KeyModifiers.None
+              | Key.Q, _ -> dispatch Msg.Exit
+              | _ -> ()
+        let onKeyDown = EventHandler<KeyEventArgs>(fun _ -> onKeyDown)
+        this.KeyDown.AddHandler(onKeyDown)
+        Disposable.ofFunction (fun () -> this.KeyDown.RemoveHandler(onKeyDown))
       )])
     // |> Program.withConsoleTrace
+    |> Program.withErrorHandler (fun (msg, e) -> printfn $"Error msg: %s{msg}, error: %O{e}")
     |> Program.run
   // base.Height <- 400.0
   // base.Width <- 400.0
@@ -116,7 +121,15 @@ module Program =
 
   [<EntryPoint>]
   let main (args : string[]) =
+    AppDomain.CurrentDomain.UnhandledException.Add(fun e ->
+      printfn $"Unhandled exception: %A{e.ExceptionObject}")
+    try
     // let existingOptions = AvaloniaLocator.Current.GetService<AvaloniaNativePlatformOptions>()
     // let opts = AvaloniaNativePlatformOptions (UseGpu = false)
     // AvaloniaLocator.CurrentMutable.BindToSelf opts |> ignore
-    AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().StartWithClassicDesktopLifetime args
+      let exitCode = AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().StartWithClassicDesktopLifetime args
+      exitCode
+    with
+    e ->
+      printfn $"Exception: %A{e}"
+      1
