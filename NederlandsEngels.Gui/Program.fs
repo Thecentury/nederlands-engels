@@ -14,6 +14,7 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
 
 open NederlandsEngels
+open NederlandsEngels.EpubParsing
 open NederlandsEngels.GUI.Model
 
 (*--------------------------------------------------------------------------------------------------------------------*)
@@ -28,7 +29,15 @@ module FileSystem =
       // When running from the 'bin' folder
       "../../../../Data"
 
-type MainWindow() as this =
+module Args =
+
+  let parseArgs (args : array<string>) =
+    match args |> List.ofArray with
+    | [] -> "1"
+    | [chapter] -> chapter
+    | _ -> failwith "Too many arguments"
+
+type MainWindow(chapterName : string) as this =
   inherit HostWindow()
 
   do
@@ -37,14 +46,18 @@ type MainWindow() as this =
 
     let root = FileSystem.root
 
-    let stateFile = Path.Combine(root, "mapping.json")
+    let stateFile = Path.Combine(root, $"mapping-{chapterName}.json")
     let model =
       if File.Exists stateFile then
         let state = Persistence.load stateFile
         createFromState state
       else
-        let enSentences = File.ReadAllLines (Path.Combine(root, "en/1.txt")) |> Array.toList
-        let nlSentences = File.ReadAllLines (Path.Combine(root, "nl/1.txt")) |> Array.toList
+        let en = loadHtml (Path.Combine (root, $"en/{chapterName}.xhtml")) |> parseEn
+        let nl = loadHtml (Path.Combine (root, $"nl/{chapterName}.xhtml")) |> parseNl
+
+        let enSentences = en |> String.concat " " |> SentenceParsing.splitIntoSentences |> Array.toList
+        let nlSentences = nl |> Seq.collect SentenceParsing.splitIntoSentences |> Seq.toList
+
         createFromSentences enSentences nlSentences
 
     let emptyDisposable =
@@ -90,7 +103,7 @@ type App() =
   override this.OnFrameworkInitializationCompleted () =
     match this.ApplicationLifetime with
     | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
-      let mainWindow = MainWindow ()
+      let mainWindow = MainWindow (Args.parseArgs desktopLifetime.Args)
       desktopLifetime.MainWindow <- mainWindow
       desktopLifetime.ShutdownMode <- ShutdownMode.OnMainWindowClose
     | _ -> ()
