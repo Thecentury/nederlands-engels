@@ -28,8 +28,8 @@ type AnnotatedValue<'a> = {
     | _ -> false
 
   member this.Equals (other : AnnotatedValue<'a>) =
-    equalityComparer.Equals(this.Value, other.Value) &&
-    equalityComparer.Equals(this.Category, other.Category)
+    equalityComparer.Equals(this.Category, other.Category) &&
+    equalityComparer.Equals(this.Value, other.Value)
 
   override this.GetHashCode() =
     HashCode.Combine(
