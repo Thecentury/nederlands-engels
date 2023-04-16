@@ -80,11 +80,14 @@ module UndoRedo =
 
 type Position = Zipper<Entry>
 
+[<CustomEquality>]
+[<NoComparison>]
 type Model = {
     Position : Position
     History : UndoRedoStack<Position>
     Selection : Selection
     ShowRowsBeforeAfter : int
+    Version : int
     // todo store last observed position
 } with
   member this.EnglishSentences =
@@ -98,6 +101,17 @@ type Model = {
 
   member this.DutchPosition =
     (this.Position.Left |> Seq.map (fun e -> e.Dutch.Length) |> Seq.sum) + 1
+
+  member this.Equals other = this.Version = other.Version
+
+  override this.Equals other =
+    match other with
+    | :? Model as other -> this.Equals other
+    | _ -> false
+
+  override this.GetHashCode () = this.Version
+
+let inline private bumpVersion (model : Model) = { model with Version = model.Version + 1 }
 
 let createFromSentences (en : List<string>) (nl : List<string>) =
     let en = en.map(Some).append(Seq.initInfinite (constant None))
@@ -113,6 +127,7 @@ let createFromSentences (en : List<string>) (nl : List<string>) =
         History = UndoRedo.empty
         Selection = English
         ShowRowsBeforeAfter = 6
+        Version = 0
     }
     model
 
@@ -122,6 +137,7 @@ let createFromState (state : List<Entry>) =
         History = UndoRedo.empty
         Selection = English
         ShowRowsBeforeAfter = 6
+        Version = 0
     }
     model
 
@@ -156,7 +172,7 @@ let updateCore (msg : Msg) (model : Model) =
         | None -> model
         | Some (history, position) -> { model with Position = position; History = history }
     | Exit -> model
-    | MergeUp -> // todo tests
+    | MergeUp ->
         let sentencesLens = sentencesLens model.Selection
         match model.Position.Left, sentencesLens.Get model.Position.Focus with
         | left :: otherLeft, firstSentence :: otherSentences ->
@@ -197,7 +213,7 @@ let updateCore (msg : Msg) (model : Model) =
 
 let update (msg : Msg) (model : Model) =
     match msg with
-    | Undo | Redo -> updateCore msg model, Cmd.none
+    | Undo | Redo -> updateCore msg model |> bumpVersion, Cmd.none
     | msg ->
         let model' = updateCore msg model
         let model' =
@@ -205,4 +221,4 @@ let update (msg : Msg) (model : Model) =
                 { model' with History = UndoRedo.push model.History model.Position }
             else
                 model'
-        model', Cmd.none
+        model' |> bumpVersion, Cmd.none
