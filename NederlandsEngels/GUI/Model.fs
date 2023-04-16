@@ -91,16 +91,16 @@ type Model = {
     // todo store last observed position
 } with
   member this.EnglishSentences =
-    this.Position |> Zipper.enumerateOutOfOrder |> Seq.collect (fun e -> e.English) |> Seq.length
+    this.Position |> Zipper.enumerateOutOfOrder |> Seq.filter (fun e -> e.English <> []) |> Seq.length
 
   member this.EnglishPosition =
-    (this.Position.Left |> Seq.map (fun e -> e.English.Length) |> Seq.sum) + 1
+    (this.Position.Left |> Seq.length) + 1
 
   member this.DutchSentences =
-    this.Position |> Zipper.enumerateOutOfOrder |> Seq.collect (fun e -> e.Dutch) |> Seq.length
+    this.Position |> Zipper.enumerateOutOfOrder |> Seq.filter (fun e -> e.Dutch <> []) |> Seq.length
 
   member this.DutchPosition =
-    (this.Position.Left |> Seq.map (fun e -> e.Dutch.Length) |> Seq.sum) + 1
+    (this.Position.Left |> Seq.length) + 1
 
   member this.Equals other = this.Version = other.Version
 
