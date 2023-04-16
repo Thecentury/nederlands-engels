@@ -8,15 +8,36 @@ module M = Machine
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
+let inline private equalityComparer<'a> =
+  System.Collections.Generic.EqualityComparer<'a>.Default
+
 [<Struct>]
 type TextCategory =
   | RegularText
   | ProperName
 
+[<CustomEquality>]
+[<NoComparison>]
 type AnnotatedValue<'a> = {
   Value : 'a
   Category : TextCategory
-}
+} with
+  override this.Equals(obj) =
+    match obj with
+    | :? AnnotatedValue<'a> as other -> this.Equals other
+    | _ -> false
+
+  member this.Equals (other : AnnotatedValue<'a>) =
+    equalityComparer.Equals(this.Value, other.Value) &&
+    equalityComparer.Equals(this.Category, other.Category)
+
+  override this.GetHashCode() =
+    HashCode.Combine(
+      equalityComparer.GetHashCode(this.Value),
+      this.Category.GetHashCode())
+
+  interface IEquatable<AnnotatedValue<'a>> with
+    member this.Equals other = this.Equals other
 
 let private mapValue (f : 'a -> 'b) (annotated : AnnotatedValue<'a>) =
   { Value = f annotated.Value; Category = annotated.Category }

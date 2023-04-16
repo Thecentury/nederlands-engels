@@ -40,7 +40,6 @@ let init (en : List<string>) (nl : List<string>) : Model * Cmd<Msg> =
         |> Seq.takeWhile Option.isSome
         |> Seq.choose id
         |> Seq.toList
-    // todo load from a state file
     let model = {
         Entries = entries
     }
