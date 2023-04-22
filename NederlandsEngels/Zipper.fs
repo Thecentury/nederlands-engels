@@ -52,6 +52,15 @@ module Zipper =
     else
       z |> tryMove |> Option.bind (tryMoveUntil f tryMove)
 
+  /// Moves in a zipper using the 'tryMove' function while the condition 'f' is true for the focus. Returns 'Some' when
+  /// after a movement the condition is not true. Returns None if the condition is not true but the movement is no
+  /// longer possible.
+  let rec tryMoveWhile f tryMove (z : Zipper<'a>) =
+    if f z.Focus then
+      z |> tryMove |> Option.bind (tryMoveWhile f tryMove)
+    else
+      Some z
+
   let enumerateOutOfOrder (z : Zipper<'a>) = seq {
     yield! z.Left
     yield z.Focus

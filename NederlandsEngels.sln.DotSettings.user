@@ -2,6 +2,7 @@
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;
   &lt;Assembly Path="/Users/mic/.nuget/packages/fsharp.core/7.0.200/lib/netstandard2.1/FSharp.Core.dll" /&gt;
   &lt;Assembly Path="/Users/mic/.nuget/packages/elmish/4.0.1/lib/netstandard2.0/Elmish.dll" /&gt;
+  &lt;Assembly Path="/Users/mic/.nuget/packages/fscheck/2.16.5/lib/netstandard2.0/FsCheck.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2bcbf96e_002D20a6_002D4817_002Da74a_002D5049a1d2ea9e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;And&gt;
