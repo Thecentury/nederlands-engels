@@ -3,6 +3,7 @@ module rec NederlandsEngels.ProperNamesDetection
 open System
 
 open Machines
+open Zipper
 
 module M = Machine
 
@@ -48,12 +49,19 @@ type private Input = Zipper<char>
 
 (*--------------------------------------------------------------------------------------------------------------------*)
 
-let private isBeginningOfAName z =
-  match z.Focus, z.Left with
-  | c, left :: otherLeft when Char.IsUpper(c) && left = ' ' ->
+let private (|IsUpper|_|) (c : char) =
+  if Char.IsUpper c then
+    Some c
+  else
+    None
+
+let private isBeginningOfAName (z : Input) =
+  match z with
+  | Zipper (' ' :: _, 'I', ' ' :: _) -> false
+  | Zipper (' ' :: otherLeft, IsUpper _, _) ->
     let skipSpaces = otherLeft |> List.skipWhile ((=) ' ')
     match skipSpaces with
-    | [] -> false
+    | [] -> false // It may be just a beginning of a sentence.
     | c :: _ when Char.IsLetterOrDigit c || List.contains c [','; '-'; '''; '"'] -> true
     | _ -> false
   | _ -> false

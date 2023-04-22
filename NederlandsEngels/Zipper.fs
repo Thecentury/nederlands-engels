@@ -46,3 +46,6 @@ module Zipper =
     yield z.Focus
     yield! z.Right
   }
+
+  let (|Zipper|) z =
+    (z.Left, z.Focus, z.Right)
