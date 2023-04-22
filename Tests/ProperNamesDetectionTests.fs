@@ -9,9 +9,9 @@ open NederlandsEngels.ProperNamesDetection
 
 [<Fact>]
 let ``Detects proper names`` () =
-  let withNames = detectNames "Hello, Watson. I'm Sherlock Holmes. I'm from London. I'm a detective. And now I am going."
+  let actual = detectNames "Hello, Mr. Watson. I'm Sherlock Holmes. I'm from London. I'm a detective. And now I am going."
   let expected = [
-    { Value = "Hello, "; Category = RegularText }
+    { Value = "Hello, Mr. "; Category = RegularText }
     { Value = "Watson"; Category = ProperName }
     { Value = ". I'm "; Category = RegularText }
     { Value = "Sherlock"; Category = ProperName }
@@ -22,4 +22,4 @@ let ``Detects proper names`` () =
     { Value = ". I'm a detective. And now I am going."; Category = RegularText }
   ]
 
-  test <@ withNames = expected @>
+  test <@ actual = expected @>

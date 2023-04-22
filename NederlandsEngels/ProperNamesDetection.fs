@@ -56,12 +56,25 @@ let private (|IsUpper|_|) (c : char) =
     None
 
 let private isBeginningOfAName (z : Input) =
+  let isAbbreviation focus right =
+    let z = Zipper.fromCons focus right
+    let maybeDot = z |> Zipper.tryMoveUntil ((=) '.') Zipper.tryMoveRight
+    match maybeDot with
+    | None -> false
+    // The abbreviation is at the end of the string.
+    | Some (Zipper (left, _, [])) when Text.isAbbreviation left -> true
+    // There is a space after the abbreviation.
+    | Some (Zipper (left, _, ' ' :: _)) when Text.isAbbreviation left -> true
+    // The string is not over after the dot and the next symbol is no a space.
+    | _ -> false
   match z with
   | Zipper (' ' :: _, 'I', ' ' :: _) -> false
+  | Zipper (' ' :: _, IsUpper c, right) when isAbbreviation c right -> false
   | Zipper (' ' :: otherLeft, IsUpper _, _) ->
     let skipSpaces = otherLeft |> List.skipWhile ((=) ' ')
     match skipSpaces with
     | [] -> false // It may be just a beginning of a sentence.
+    | '.' :: rest when Text.isAbbreviation rest -> true // A proper name goes after an abbreviation ending with a '.'.
     | c :: _ when Char.IsLetterOrDigit c || List.contains c [','; '-'; '''; '"'] -> true
     | _ -> false
   | _ -> false

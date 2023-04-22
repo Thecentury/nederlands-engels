@@ -22,6 +22,9 @@ module Zipper =
     | [] -> None
     | h :: t -> Some { Left = []; Focus = h; Right = t }
 
+  let fromCons focus rights =
+    { Left = []; Focus = focus; Right = rights }
+
   let toList (z : Zipper<'a>) =
     z.Left.reverse() @ [z.Focus] @ z.Right
 
@@ -40,6 +43,14 @@ module Zipper =
       | None -> None
       | Some z -> Some (z, tryMoveRight z))
       ^ Some z
+
+  /// Moves in a zipper using the 'tryMove' function until the condition 'f' is true for the focus. Returns None if the
+  /// condition hasn't become true and the movement is no longer possible.
+  let rec tryMoveUntil f tryMove (z : Zipper<'a>) =
+    if f z.Focus then
+      Some z
+    else
+      z |> tryMove |> Option.bind (tryMoveUntil f tryMove)
 
   let enumerateOutOfOrder (z : Zipper<'a>) = seq {
     yield! z.Left
