@@ -9,6 +9,7 @@
     <Compile Include="Prelude.fs" />
     <Compile Include="Machines.fs" />
     <Compile Include="SeqMachines.fs" />
+    <Compile Include="Text.fs" />
     <Compile Include="SentenceParsing.fs" />
     <Compile Include="EpubParsing.fs" />
     <Compile Include="Zipper.fs" />

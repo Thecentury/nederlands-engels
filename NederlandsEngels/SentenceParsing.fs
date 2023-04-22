@@ -2,8 +2,9 @@ module rec NederlandsEngels.SentenceParsing
 
 open System
 
-open NederlandsEngels.Machines
-open NederlandsEngels.SeqMachines
+open Machines
+open SeqMachines
+open Text
 
 module M = Machine
 
@@ -41,33 +42,6 @@ let private (|SentenceTerminator|_|) = function
 let private (|SentenceTerminatorNotDot|_|) = function
     | '?' | '!' -> Some ()
     | _ -> None
-
-// Dr., Mr., Mrs., etc. + all caps
-
-let private abbreviations = [|
-        "mr"
-        "mrs"
-        "ms"
-        "dr"
-        "prof"
-        "sr"
-        "jr"
-        "st"
-        "rev"
-    |]
-
-let private isAbbreviation (sentence : List<char>) =
-    let rec isAbbreviation (abbr : string) index sentence =
-        match index, sentence with
-        | -1, _ -> true
-        | _, [] -> false // The sentence is too short to be an abbreviation
-        | _, c :: rest ->
-            if Char.ToLowerInvariant c = abbr[index] then
-                isAbbreviation abbr (index - 1) rest
-            else
-                false
-
-    abbreviations |> Array.exists (fun abbr -> isAbbreviation abbr (abbr.Length - 1) sentence)
 
 let private restoreSentence = List.rev >> List.toArray >> String
 let private completeSentence = restoreSentence >> List.singleton
