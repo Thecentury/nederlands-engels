@@ -19,11 +19,7 @@ let ``Detects proper names 1`` () =
     { Value = "Sherlock"; Category = ProperName }
     { Value = " "; Category = RegularText }
     { Value = "Holmes"; Category = ProperName }
-    { Value = ". \"He is\". He said \""; Category = RegularText }
-    { Value = "He"; Category = ProperName }
-    { Value = "\", '"; Category = RegularText }
-    { Value = "He"; Category = ProperName }
-    { Value = "'. I'm from "; Category = RegularText }
+    { Value = ". \"He is\". He said \"He\", 'He'. I'm from "; Category = RegularText }
     { Value = "London"; Category = ProperName }
     { Value = ". I'm a detective. And now I am going."; Category = RegularText }
   ]
@@ -34,9 +30,7 @@ let ``Detects proper names 1`` () =
 let ``Detects proper names 2`` () =
   let actual = detectNames "I——\"MY DEAR MR.\""
   let expected = [
-    { Value = "I——\""; Category = RegularText }
-    { Value = "MY"; Category = ProperName }
-    { Value = " "; Category = RegularText }
+    { Value = "I——\"MY "; Category = RegularText }
     { Value = "DEAR"; Category = ProperName }
     { Value = " MR.\""; Category = RegularText }
   ]

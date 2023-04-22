@@ -75,12 +75,12 @@ let private isBeginningOfAName (z : Input) =
   match z with
   | Zipper (' ' :: _, 'I', ' ' :: _) -> false
   | Zipper (' ' :: _, IsUpper c, right) when isAbbreviation c right -> false
-  | Zipper ((' ' | '"' | ''') :: otherLeft, IsUpper _, _) ->
+  | Zipper (' ' :: otherLeft, IsUpper _, _) ->
     let skipSpaces = otherLeft |> List.skipWhile ((=) ' ')
     match skipSpaces with
     | [] -> false // It may be just a beginning of a sentence.
     | '.' :: rest when Text.isAbbreviation rest -> true // A proper name goes after an abbreviation ending with a '.'.
-    | c :: _ when Char.IsLetterOrDigit c || List.contains c [','; '-'; '''; '"'; '—'; '—'] -> true
+    | c :: _ when Char.IsLetterOrDigit c || List.contains c [','; '-'; '''; '"'; '—'] -> true
     | _ -> false
   | _ -> false
 
