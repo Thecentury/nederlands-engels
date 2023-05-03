@@ -4,6 +4,10 @@ A small program to match English sentences with their Dutch translations.
 
 ![Nederlands-Engels screenshot](./Docs/img/screenshot.png)
 
+https://user-images.githubusercontent.com/3943804/236040192-9f787d4a-de6a-4d27-8047-2e53c6f622de.mp4
+
+The tool is built using the [Avalonia](https://github.com/AvaloniaUI/Avalonia) UI Framework and a functional wrapper around it — [FuncUI](https://github.com/fsprojects/Avalonia.FuncUI).
+
 ## Usage
 
 Only keyboard navigation is supported.
