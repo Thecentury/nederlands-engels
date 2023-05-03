@@ -1,6 +1,6 @@
 # Nederlands-Engels
 
-A small program to match translations of English sentences to Dutch.
+A small program to match English sentences with their Dutch translations.
 
 ![Nederlands-Engels screenshot](./Docs/img/screenshot.png)
 
@@ -17,6 +17,8 @@ Hotkeys:
 - `m` to merge the currently selected sentence with the previous one
 - `u`/`r` to undo/redo last changes
 - `Esc`/`q` to save the current state and quit
+
+Repository also contains three chapters of the "A Study in Scarlet" book by Arthur Conan Doyle and their translations to Dutch.
 
 ## Building
 
