@@ -1,0 +1,3 @@
+[submodule "Ext/Avalonia.FuncUI"]
+	path = Ext/Avalonia.FuncUI
+	url = git@github.com:fsprojects/Avalonia.FuncUI.git

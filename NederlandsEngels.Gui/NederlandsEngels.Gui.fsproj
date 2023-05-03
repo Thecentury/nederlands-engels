@@ -12,11 +12,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
-        <PackageReference Include="Avalonia.Native" Version="$(AvaloniaVersion)" />
-        <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-        <PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.1" />
+      <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+      <PackageReference Include="Avalonia.Native" Version="$(AvaloniaVersion)" />
+      <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+      <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+      <PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.1" />
       <PackageReference Include="Microsoft.NETCore.Targets" Version="5.0.0" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
       <PackageReference Include="SkiaSharp" Version="2.88.3" />
@@ -24,8 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Avalonia.FuncUI.Elmish\Avalonia.FuncUI.Elmish.fsproj" />
-      <ProjectReference Include="..\Avalonia.FuncUI\Avalonia.FuncUI.fsproj" />
+      <ProjectReference Include="..\Ext\Avalonia.FuncUI\src\Avalonia.FuncUI.Elmish\Avalonia.FuncUI.Elmish.fsproj" />
+      <ProjectReference Include="..\Ext\Avalonia.FuncUI\src\Avalonia.FuncUI\Avalonia.FuncUI.fsproj" />
       <ProjectReference Include="..\NederlandsEngels\NederlandsEngels.fsproj" />
     </ItemGroup>
 
