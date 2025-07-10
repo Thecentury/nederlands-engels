@@ -22,7 +22,7 @@ Hotkeys:
 - `u`/`r` to undo/redo last changes
 - `Esc`/`q` to save the current state and quit
 
-Repository also contains three chapters of the "A Study in Scarlet" book by Arthur Conan Doyle and their translations to Dutch.
+The repository also contains three chapters of the "A Study in Scarlet" book by Arthur Conan Doyle and their translations to Dutch.
 
 ## Building
 
