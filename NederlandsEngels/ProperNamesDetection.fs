@@ -1,6 +1,7 @@
 module rec NederlandsEngels.ProperNamesDetection
 
 open System
+open System.Text.RegularExpressions
 
 open Machines
 open Zipper
@@ -117,6 +118,33 @@ let private applyToCharacters (s : string) m =
       ) (m, 0)
     |> fst
     |> Seq.toList
+
+let injectDetectedNames (names : Set<string>) (text : List<AnnotatedValue<string>>) =
+  let regex =
+    let names = names |> Seq.map (fun name -> Regex.Escape(name)) |> String.concat "|"
+    Regex($@"\b({names})\b")
+  let rec inject soFar (text : List<AnnotatedValue<string>>) =
+    match text with
+    | [] -> List.rev soFar
+    | { Category = ProperName } as name :: rest ->
+        inject (name :: soFar) rest
+    | { Category = RegularText; Value = text } :: rest ->
+        let parts = regex.Split(text)
+        let soFar =
+          parts
+          |> Seq.fold (fun soFar part ->
+            if names.Contains(part) then
+              { Category = ProperName; Value = part } :: soFar
+            else
+              { Category = RegularText; Value = part } :: soFar) soFar
+        inject soFar rest
+  inject [] text
+
+let names (text : List<AnnotatedValue<string>>) =
+  text
+  |> Seq.filter (fun value -> value.Category = ProperName)
+  |> Seq.map _.Value
+  |> Set.ofSeq
 
 let detectNames (s : string) =
   applyToCharacters s machine

@@ -26,7 +26,7 @@ let private isNotLink (e : IElement) =
 
 let parseEn (html : IHtmlElement) =
     html
-        .QuerySelectorAll("span")
+        .QuerySelectorAll("span, p")
         .filter(isNotLink)
         .ofType<INode>()
         .collect(fun e -> e.ChildNodes)
@@ -37,7 +37,7 @@ let parseEn (html : IHtmlElement) =
 
 let parseNl (html : IHtmlElement) =
     html.QuerySelectorAll("span, p, h2, h3")
-        .filter(fun e -> e.Children.forall(function | :? IHtmlBreakRowElement -> true | _ -> false))
+        // .filter(fun e -> e.Children.forall(function | :? IHtmlBreakRowElement -> true | _ -> false))
         .ofType<INode>()
         .collect(fun e -> e.ChildNodes)
         .ofType<IText>()

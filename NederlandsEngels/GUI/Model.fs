@@ -21,6 +21,19 @@ type Entry = {
 }
 with member this.IsEmpty = this.English.IsEmpty && this.Dutch.IsEmpty
 
+let entryNames { English = english; Dutch = dutch } =
+    let english = english |> Seq.map names |> Set.unionMany
+    let dutch = dutch |> Seq.map names |> Set.unionMany
+    english + dutch
+
+let injectNamesIntoEntry (names : Set<string>) (entry : Entry) =
+  let inject parts =
+    parts |> List.map (fun part -> injectDetectedNames names part)
+  {
+    English = inject entry.English
+    Dutch = inject entry.Dutch
+  }
+
 let englishLens = Lens.create (fun e -> e.English) (fun e english -> { e with English = english })
 let dutchLens = Lens.create (fun e -> e.Dutch) (fun e dutch -> { e with Dutch = dutch })
 
@@ -122,6 +135,13 @@ let createFromSentences (en : List<string>) (nl : List<string>) =
         |> Seq.takeWhile Option.isSome
         |> Seq.choose id
         |> Seq.toList
+    let names =
+        entries
+        |> Seq.map entryNames
+        |> Set.unionMany
+    let entries =
+        entries
+        |> List.map ^ injectNamesIntoEntry names
     let model = {
         Position = Zipper.fromList entries
         History = UndoRedo.empty
