@@ -95,11 +95,6 @@ type MainWindow(chapterName : string) as this =
     // |> Program.withConsoleTrace
     |> Program.withErrorHandler (fun (msg, e) -> printfn $"Error msg: %s{msg}, error: %O{e}")
     |> Program.run
-  // base.Height <- 400.0
-  // base.Width <- 400.0
-
-  //this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
-  //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
 
 type App() =
   inherit Application()
@@ -127,14 +122,8 @@ module Program =
     AppDomain.CurrentDomain.UnhandledException.Add(fun e -> printfn $"Unhandled exception: %A{e.ExceptionObject}")
 
     try
-      // let opts =
-      //   AvaloniaLocator.CurrentMutable.BindToSelf<AvaloniaNativePlatformOptions>()
-      //   AvaloniaLocator.Current.GetService<AvaloniaNativePlatformOptions>()
-      //   |> Option.ofObj
-      //   |> Option.defaultValue ^ AvaloniaNativePlatformOptions ()
       let opts = AvaloniaNativePlatformOptions()
       opts.RenderingMode <- [| AvaloniaNativeRenderingMode.Software; AvaloniaNativeRenderingMode.Metal |]
-      // AvaloniaLocator.CurrentMutable.BindToSelf opts |> ignore
       let exitCode =
         AppBuilder.Configure<App>().UsePlatformDetect().With(opts).UseSkia().StartWithClassicDesktopLifetime args
 
