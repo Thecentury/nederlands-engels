@@ -1,14 +1,17 @@
-﻿namespace NederlandsEngels.Gui
+namespace NederlandsEngels.Gui
 
 open System
 open System.IO
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Input
+open Avalonia.Platform
 open Avalonia.Styling
 open Avalonia.Themes.Fluent
 open Avalonia.FuncUI.Hosts
 open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.Threading
+open Avalonia.Controls.Platform
 open Elmish
 open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
@@ -117,19 +120,25 @@ module Program =
 
   [<CompiledName "BuildAvaloniaApp">]
   let buildAvaloniaApp () =
-    AppBuilder.Configure<App>().UsePlatformDetect().LogToTrace (areas = Array.empty)
+    AppBuilder.Configure<App>().UsePlatformDetect().LogToTrace(areas = Array.empty)
 
   [<EntryPoint>]
-  let main (args : string[]) =
-    AppDomain.CurrentDomain.UnhandledException.Add(fun e ->
-      printfn $"Unhandled exception: %A{e.ExceptionObject}")
+  let main (args: string[]) =
+    AppDomain.CurrentDomain.UnhandledException.Add(fun e -> printfn $"Unhandled exception: %A{e.ExceptionObject}")
+
     try
-    // let existingOptions = AvaloniaLocator.Current.GetService<AvaloniaNativePlatformOptions>()
-    // let opts = AvaloniaNativePlatformOptions (UseGpu = false)
-    // AvaloniaLocator.CurrentMutable.BindToSelf opts |> ignore
-      let exitCode = AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().StartWithClassicDesktopLifetime args
+      // let opts =
+      //   AvaloniaLocator.CurrentMutable.BindToSelf<AvaloniaNativePlatformOptions>()
+      //   AvaloniaLocator.Current.GetService<AvaloniaNativePlatformOptions>()
+      //   |> Option.ofObj
+      //   |> Option.defaultValue ^ AvaloniaNativePlatformOptions ()
+      let opts = AvaloniaNativePlatformOptions()
+      opts.RenderingMode <- [| AvaloniaNativeRenderingMode.Software; AvaloniaNativeRenderingMode.Metal |]
+      // AvaloniaLocator.CurrentMutable.BindToSelf opts |> ignore
+      let exitCode =
+        AppBuilder.Configure<App>().UsePlatformDetect().With(opts).UseSkia().StartWithClassicDesktopLifetime args
+
       exitCode
-    with
-    e ->
+    with e ->
       printfn $"Exception: %A{e}"
       1
